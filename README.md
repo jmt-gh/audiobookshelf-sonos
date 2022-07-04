@@ -9,16 +9,18 @@ A standalone server that adds support for listening to an Audiobookshelf library
 
 ## Missing Features
 - Authentication. Currently anyone on the network can access the library made available through this app from within the Sonos app
+- Browsing different libraries
+- Viewing audiobook metadata such as descriptions
 - Cover Art on the Sonos music player doesn't load
-- M4B files have *very* spotty coverage right now (MP3s have full support)
-- Individual chapter support
+- M4B files have *very* spotty coverage right now (MP3s with proper mime-type have full support)
+- Individual chapter support ("previous" and "next" seek moves between MP3 tracks rather than chapters)
 
 ## How it works
 When you use the Sonos app, you have the ability to add "music services" (Audible, YouTube Music, Libby, iHeartRadio, etc.). These services have been developed, submitted to Sonos for approval, and made available to all Sonos users on behalf of the companies that own them. Each company (developer) is responsible for hosting the actual service itself.
 
-The services are built on top of the ["Sonos Music API"](https://developer.sonos.com/reference/sonos-music-api/) (aka SMAPI), which is a [SOAP API](https://stoplight.io/api-types/soap-api). The service functions as a middleware for the Sonos device to reach out to, and in response get information on the items available, metadata, stream URIs, etc.
+The services are built on top of the [Sonos Music API](https://developer.sonos.com/reference/sonos-music-api/) (aka SMAPI), which is a [SOAP API](https://stoplight.io/api-types/soap-api). The service functions as a middleware for the Sonos device to reach out to, and in response get information on the items available, metadata, stream URIs, etc.
 
-For development puropses, Sonos allows you to manually configure a local service, called a "Custom Service", which is what this application uses. This is done through the Custom Service Descriptor page, that is hosted on each Sonos device. This is how this application works -- it is configured as a Custom Service on a local device and made available to all users on the network.
+For development puropses, Sonos allows you to manually configure a local service, called a "Custom Service", which is what this application uses. This is done through the Custom Service Descriptor page that is hosted on each Sonos device. This is how this application works -- it is configured as a Custom Service on a local device and made available to all users on the network.
 ## How to use
 There are a few moving pieces to this. You'll need to follow each of these to get things up and running.
 
