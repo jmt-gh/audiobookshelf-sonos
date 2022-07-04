@@ -7,7 +7,7 @@ const config = require('./config')
 const EXPRESS_APP = express()
 const SONOS_SOAP_SERVICE =  require('./sonos-service')
 const HTTP_PORT = config.HTTP_PORT
-const ABS_HTTPS_URI = config.ABS_HTTPS_URI
+const SOAP_URI = config.SOAP_URI
 const SOAP_ENDPOINT = config.SOAP_ENDPOINT
 const SONOS_WSDL_FILE = config.SONOS_WSDL_FILE
 
@@ -46,7 +46,7 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
         "endpoints": [
           {
             "type": "reporting",
-            "uri": `${ABS_HTTPS_URI}/playbacks/v2.1/report"`
+            "uri": `${SOAP_URI}/playbacks/v2.1/report"`
           }
         ]
       }

@@ -2059,7 +2059,7 @@
 
     <wsdl:service name="Sonos">
         <wsdl:port name="SonosSoap" binding="tns:SonosSoap">
-		<soap:address location=""/> <!-- UPDATE WITH ABS_URI -->
+		<soap:address location=""/> <!-- UPDATE WITH SOAP_URI -->
         </wsdl:port>
     </wsdl:service>
 
