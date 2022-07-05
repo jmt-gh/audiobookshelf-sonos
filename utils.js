@@ -193,7 +193,7 @@ function partNameAndRelativeProgress(currentProgress, libraryItem) {
   let closestIndex = newDurationSums.indexOf(inThisPart)
 
   res.partName = audioFiles[closestIndex].metadata.filename
-  res.relativeTimeForPart = durations[closestIndex] == 0 ? currentTime : Math.abs(currentTime - durations[closestIndex - 1])
+  res.relativeTimeForPart = durations[closestIndex] == 0 ? currentTime : Math.abs(currentTime - newDurationSums[closestIndex - 1])
 
   return res
 }
