@@ -8,7 +8,7 @@ A standalone server that adds support for listening to an Audiobookshelf library
 - Sync progress to and from Audiobookshelf
 
 ## Missing Features
-- Authentication. Currently anyone on the network can access the library made available through this app from within the Sonos app
+- Authentication. Currently anyone on the network can access the library made available through this server from within the Sonos app
 - Browsing different libraries
 - Viewing audiobook metadata such as descriptions
 - Cover Art on the Sonos music player doesn't load
