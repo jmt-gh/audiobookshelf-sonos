@@ -8,25 +8,33 @@ const ABS_LIBRARY_ID = config.ABS_LIBRARY_ID
 
 // Network Requests
 async function getLibraryItems() {
-  const config = {
-    headers: { Authorization: `Bearer ${ABS_TOKEN}` }
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${ABS_TOKEN}` }
+    }
+  
+    let path = `${ABS_URI}/api/libraries/${ABS_LIBRARY_ID}/items`
+  
+    const { data } = await axios.get(path, config)
+    return data 
+  } catch (error) {
+    console.log(`[getLibraryItems] Error caught. Error: ${error}`)
   }
-
-  let path = `${ABS_URI}/api/libraries/${ABS_LIBRARY_ID}/items`
-
-  const { data } = await axios.get(path, config)
-  return data
 };
 
 async function getLibraryItem(libraryItemId) {
-  const config = {
-    headers: { Authorization: `Bearer ${ABS_TOKEN}` }
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${ABS_TOKEN}` }
+    }
+  
+    let path = `${ABS_URI}/api/items/${libraryItemId}`
+  
+    const { data } = await axios.get(path, config)
+    return data
+  } catch (error) {
+    console.log(`[getLibraryItem] Error caught. Error: ${error}`)
   }
-
-  let path = `${ABS_URI}/api/items/${libraryItemId}`
-
-  const { data } = await axios.get(path, config)
-  return data
 };
 
 async function getABSProgress(libraryItemId) {
@@ -40,6 +48,7 @@ async function getABSProgress(libraryItemId) {
     const { data } = await axios.get(path, config)
     return data
   } catch (error) {
+    console.log(`[getABSProgress] Error caught. Error: ${error}`)
   }
 }
 
@@ -63,7 +72,7 @@ async function setProgress(updateObject, progress) {
 
     const { data } = await axios.patch(path, updateData, config)
   } catch (error) {
-    console.log('ERROR INSIDE setProgress!', error)
+    console.log(`[getABSProgress] Error caught. Error: ${error}`)
   }
 }
 
@@ -112,6 +121,7 @@ async function buildLibraryMetadataResult(res) {
     }
   }
 }
+
 async function buildAudiobookTrackList(libraryItem, progressData) {
   let tracks = libraryItem.media.audioFiles
   let icount = tracks.length
