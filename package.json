@@ -24,6 +24,7 @@
   "homepage": "https://github.com/jmt-gh/audiobookshelf-sonos#readme",
   "dependencies": {
     "axios": "^0.26.1",
+    "express": "^4.18.1",
     "soap": "^0.45.0"
   }
 }

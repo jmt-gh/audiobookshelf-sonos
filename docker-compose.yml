@@ -1,0 +1,13 @@
+services:
+  audiobookshelf-sonos:
+    container_name: audiobookshelf-sonos
+    image: node-docker
+    environment:
+      - SOAP_URI=
+      - ABS_URI=
+      - ABS_LIBRARY_ID=
+      - ABS_TOKEN=
+    ports:
+      - 3333:80
+    volumes:
+    - ./sonos.wsdl:/app/sonos.wsdl
