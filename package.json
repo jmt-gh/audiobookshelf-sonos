@@ -1,0 +1,29 @@
+{
+  "name": "audiobookshelf-sonos",
+  "version": "1.0.0",
+  "description": "A standalone server that adds support for listening to an Audiobookshelf library on Sonos speakers. Built on top of the Sonos Music API (SMAPI).",
+  "main": "soap-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmt-gh/audiobookshelf-sonos.git"
+  },
+  "keywords": [
+    "sonos",
+    "audiobook",
+    "audiobookshelf",
+    "smapi"
+  ],
+  "author": "jmt-gh",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/jmt-gh/audiobookshelf-sonos/issues"
+  },
+  "homepage": "https://github.com/jmt-gh/audiobookshelf-sonos#readme",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "soap": "^0.45.0"
+  }
+}
