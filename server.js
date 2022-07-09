@@ -48,11 +48,11 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
   EXPRESS_APP.get("/manifest", (req, res) => {
     console.log("[soapServer] /manifest called");
     res.send({
-      schemaVersion: "1.1",
+      schemaVersion: "1.0",
       endpoints: [
         {
           type: "reporting",
-          uri: `${SOAP_URI}/playbacks/v2.1/report"`,
+          uri: `${SOAP_URI}/playback/v2.1/report"`,
         },
       ],
     });
