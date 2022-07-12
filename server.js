@@ -52,7 +52,7 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
       endpoints: [
         {
           type: "reporting",
-          uri: `${SOAP_URI}/playback/v2.1/report"`,
+          uri: `${SOAP_URI}/playback/v2.1/report`,
         },
       ],
     });
