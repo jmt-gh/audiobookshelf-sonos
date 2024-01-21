@@ -13,7 +13,7 @@ async function getLibraryItems() {
     };
 
     let path = `${ABS_URI}/api/libraries/${ABS_LIBRARY_ID}/items`;
-
+    console.log(`path: ${path}`)
     const { data } = await axios.get(path, config);
     return data;
   } catch (error) {
@@ -28,6 +28,7 @@ async function getLibraryItem(libraryItemId) {
     };
 
     let path = `${ABS_URI}/api/items/${libraryItemId}`;
+    console.log(`[getLibraryItem] item path: ${path}`)
 
     const { data } = await axios.get(path, config);
     return data;
@@ -79,7 +80,9 @@ async function setProgress(updateObject, progress) {
 
 // Build the Objects
 async function buildMediaURI(id) {
-  let path = `${ABS_URI}/s/item/${id}?token=${ABS_TOKEN}`;
+//  let path = `${ABS_URI}/s/item/${id}?token=${ABS_TOKEN}`;
+  let path = `${ABS_URI}/api/items/${id}?token=${ABS_TOKEN}`
+  console.log(`[buildMediaURI] path: ${path}`)
 
   return {
     getMediaURIResult: path,
@@ -92,25 +95,25 @@ async function buildLibraryMetadataResult(res) {
   let total = count;
   let mediaMetadata = [];
 
-  for (const libraryItem of libraryItems) {
-    // https://developer.sonos.com/build/content-service-add-features/save-resume-playback/
-    var mediaMetadataEntry = {
-      itemType: "audiobook",
-      id: libraryItem.id,
-      mimeType: libraryItem.media.audioFiles[0].mimeType,
-      canPlay: true,
-      canResume: true,
-      title: libraryItem.media.metadata.title,
-      summary: libraryItem.media.metadata.description,
-      authorId: libraryItem.media.metadata.authors[0].id,
-      author: libraryItem.media.metadata.authors[0].name,
-      narratorId: libraryItem.media.metadata.narrators[0].id,
-      narrator: libraryItem.media.metadata.narrators[0].name,
-      albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
-    };
+   for (const libraryItem of libraryItems) {
+     // https://developer.sonos.com/build/content-service-add-features/save-resume-playback/
+     var mediaMetadataEntry = { 
+       itemType: "audiobook",
+       id: libraryItem.id,
+      //mimeType: libraryItem.media.audioFiles[0].mimeType,
+       canPlay: true,
+       canResume: true,
+       title: libraryItem.media.metadata.title,
+       summary: libraryItem.media.metadata.description,
+       //authorId: libraryItem.media.metadata.authors[0].id,
+       //author: libraryItem.media.metadata.authors[0].name,
+       //narratorId: libraryItem.media.metadata.narrators[0].id,
+       //narrator: libraryItem.media.metadata.narrators[0].name,
+       //albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
+     };  
 
-    mediaMetadata.push(mediaMetadataEntry);
-  }
+     mediaMetadata.push(mediaMetadataEntry);
+   }   
 
   // count and total HAVE to be correct, otherwise the sonos app falls over silently
   return {
@@ -130,16 +133,17 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
   let imediaMetadata = [];
 
   for (const track of tracks) {
+//    console.log(`[buildAudiobookTrackList] track in tracks: ${JSON.stringify(track, null, 2)}`)
     var mediaMetadataEntry = {
-      id: `${libraryItem.id}/${track.metadata.filename}`,
+      id: `${libraryItem.media.libraryItemId}/file/${track.ino}`,
       itemType: "track",
       title: track.metadata.filename,
       mimeType: track.mimeType,
       trackMetadata: {
         authorId: libraryItem.media.metadata.authors[0].id,
         author: libraryItem.media.metadata.authors[0].name,
-        narratorId: libraryItem.media.metadata.narrators[0].id,
-        narrator: libraryItem.media.metadata.narrators[0].name,
+//        narratorId: libraryItem.media.metadata.narrators[0].id,
+//        narrator: libraryItem.media.metadata.narrators[0].name,
         duration: track.duration,
         book: libraryItem.media.metadata.title,
         albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
@@ -153,13 +157,19 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
 
   let positionInformation = {};
   if (progressData) {
+ try {
+    console.log(`[buildAudiobookTrackList] There was progressData!`)
     positionInformation = {
-      id: `${libraryItem.id}/${progressData.partName}`, // li_{string}/Part##.mp3
+      id: `${libraryItem.id}/file/${progressData.partName}`, // UUID-ITEM-ID/12345
       index: 0,
       // 1) Sonos gets upset if there are too many decimals
       // 2) ABS returns everything in seconds, so multiple by 1000 for milliseconds for sonos
       offsetMillis: Math.round(progressData.relativeTimeForPart * 1000),
     };
+    console.log(`[buildAudiobookTrackList] positionInformation: ${JSON.stringify(positionInformation, null, 2)}`)
+  } catch (error) {
+	  console.error('ERROR IN buildAudiobookTrackList:', error.message)
+  }
   }
 
   return {
