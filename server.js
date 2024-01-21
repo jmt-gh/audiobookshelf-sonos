@@ -2,6 +2,7 @@ const soap = require("soap");
 const { updateAudioBookshelfProgress } = require("./utils");
 const express = require("express");
 const config = require("./config");
+const logger = require('./logger');
 
 /* CONFIG */
 const EXPRESS_APP = express();
@@ -40,15 +41,12 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     SONOS_SOAP_SERVICE,
     SONOS_WSDL_FILE,
     function () {
-      //TODO: move to info logging level
-      console.log("[soapServer] server initialized");
+      logger.info('Server Initialized...');
     }
   );
 
   soaper.log = function (type, data) {
-  //TODO: move to debug logging level
-  // uncomment to log SOAP requests coming in
-  // console.log(data)
+    logger.debug(data)
   };
 
   /*
@@ -60,8 +58,7 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     Reporting documentation: https://developer.sonos.com/build/content-service-add-features/add-reporting/
   */
   EXPRESS_APP.get("/manifest", (req, res) => {
-    //TODO: move to info logging level
-    console.log("[soapServer] /manifest called");
+    logger.info("/manifest endpoint hit")
     res.send({
       schemaVersion: "1.0",
       endpoints: [
@@ -74,17 +71,14 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
   });
 
   EXPRESS_APP.post(`${SOAP_ENDPOINT}/playback/v2.1/report`, (req, res) => {
-    //TODO: move to info logging level
-    console.log("[soapServer] /playback/v2.1/report called");
+    logger.info(`${SOAP_ENDPOINT}/playback/v2.1/report endpoint hit`)
   });
 
   EXPRESS_APP.post(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed`, (req, res) => {
-    //TODO: move to info logging level
-    console.log("[soapServer] /playback/v2.1/report/timePlayed called");
+    logger.info(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed endpoint hit`);
 
     let sonosProgressUpdate = req.body.items[0];
-    //TODO: add debug logging level
-    //console.log(`[soapServer] /report/timePlayed - sonosProgressUpdate: ${JSON.stringify(sonosProgressUpdate, null, 2)}`)
+    logger.debug(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed - sonosProgressUpdate`, sonosProgressUpdate)
     let progressUpdateForABS = {
       libraryItemId: sonosProgressUpdate.containerId,
       libraryItemIdAndFileName: sonosProgressUpdate.objectId,
