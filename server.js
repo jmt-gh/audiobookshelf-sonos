@@ -15,17 +15,11 @@ const SONOS_WSDL_FILE = config.SONOS_WSDL_FILE;
 /**********/
 
 EXPRESS_APP.use(express.json()); // express.json allows for native body parsing
-/*
- * Uncomment to log all requests that hit the express server, regardless of endpoint
- *
-
 EXPRESS_APP.use((req, res, next) => {
-  //TODO: move to info logging level
-  console.log(`Received request: ${req.method} ${req.url}`);
+  logger.debug(`Received request: ${req.method} ${req.url}`);
   next();
 });
 
-*/
 
 EXPRESS_APP.listen(HTTP_PORT, function () {
   /* 
@@ -45,9 +39,10 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     }
   );
 
-  soaper.log = function (type, data) {
-    logger.debug(data)
-  };
+  // Even though this is set to DEBUG, it's still super noisy. Uncomment if needed, but most likely it won't be.
+  //soaper.log = function (type, data) {
+  //  logger.debug(data)
+  //};
 
   /*
     Sonos Cloud Queue Routes

@@ -11,6 +11,7 @@ services:
       - ABS_URI=
       - ABS_LIBRARY_ID=
       - ABS_TOKEN=
+      - LOG_LEVEL=info # set to debug, info, warn, error
     ports:
       - 80:80
     volumes:
