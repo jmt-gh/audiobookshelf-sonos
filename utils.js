@@ -1,4 +1,5 @@
 const axios = require("axios");
+const logger = require("./logger");
 var config = require("./config");
 
 const ABS_TOKEN = config.ABS_TOKEN;
@@ -13,11 +14,12 @@ async function getLibraryItems() {
     };
 
     let path = `${ABS_URI}/api/libraries/${ABS_LIBRARY_ID}/items`;
-    console.log(`path: ${path}`)
+    logger.info("Fetching library item at:", path)
+
     const { data } = await axios.get(path, config);
     return data;
   } catch (error) {
-    console.log(`[getLibraryItems] Error caught. Error: ${error}`);
+    logger.error("Error fetching library items", error);
   }
 }
 
@@ -28,12 +30,12 @@ async function getLibraryItem(libraryItemId) {
     };
 
     let path = `${ABS_URI}/api/items/${libraryItemId}`;
-    console.log(`[getLibraryItem] item path: ${path}`)
+    logger.info("Fetching library item at:", path)
 
     const { data } = await axios.get(path, config);
     return data;
   } catch (error) {
-    console.log(`[getLibraryItem] Error caught. Error: ${error}`);
+    logger.error("Error fetching library item", error);
   }
 }
 
@@ -44,12 +46,12 @@ async function getABSProgress(libraryItemId) {
     };
 
     let path = `${ABS_URI}/api/me/progress/${libraryItemId}`;
-    console.log(`[getABSProgress] path: ${path}`);
+    logger.info("Fetching library item progress at:", path)
 
     const { data } = await axios.get(path, config);
     return data;
   } catch (error) {
-    console.log(`[getABSProgress] Error caught. Error: ${error}`);
+    logger.error("Error fetching library item progress", error);
   }
 }
 
@@ -62,7 +64,7 @@ async function setProgress(updateObject, progress) {
     };
 
     let path = `${ABS_URI}/api/me/progress/${libraryItemId}`;
-    console.log(`[setABSProgress] path: ${path}`);
+    logger.info("Setting library item progress at:", path)
 
     const updateData = {
       duration: progress.bookDuration,
@@ -70,19 +72,18 @@ async function setProgress(updateObject, progress) {
       progress: progress.progress / progress.bookDuration,
     };
 
-    console.log('updateData', updateData)
+    logger.debug('updateData', updateData)
 
     const { data } = await axios.patch(path, updateData, config);
   } catch (error) {
-    console.log(`[setABSProgress] Error caught. Error: ${error}`);
+    console.error("Error setting library item progress", error);
   }
 }
 
 // Build the Objects
 async function buildMediaURI(id) {
-//  let path = `${ABS_URI}/s/item/${id}?token=${ABS_TOKEN}`;
   let path = `${ABS_URI}/api/items/${id}?token=${ABS_TOKEN}`
-  console.log(`[buildMediaURI] path: ${path}`)
+  logger.info('Building Media URI to fetch...', path)
 
   return {
     getMediaURIResult: path,
@@ -112,6 +113,8 @@ async function buildLibraryMetadataResult(res) {
        //albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
      };  
 
+     logger.debug("libraryItem for mediaMetadataEntry:", libraryItem)
+
      mediaMetadata.push(mediaMetadataEntry);
    }   
 
@@ -133,7 +136,6 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
   let imediaMetadata = [];
 
   for (const track of tracks) {
-//    console.log(`[buildAudiobookTrackList] track in tracks: ${JSON.stringify(track, null, 2)}`)
     var mediaMetadataEntry = {
       id: `${libraryItem.media.libraryItemId}/file/${track.ino}`,
       itemType: "track",
@@ -142,8 +144,8 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
       trackMetadata: {
         authorId: libraryItem.media.metadata.authors[0].id,
         author: libraryItem.media.metadata.authors[0].name,
-//        narratorId: libraryItem.media.metadata.narrators[0].id,
-//        narrator: libraryItem.media.metadata.narrators[0].name,
+//      narratorId: libraryItem.media.metadata.narrators[0].id,
+//      narrator: libraryItem.media.metadata.narrators[0].name,
         duration: track.duration,
         book: libraryItem.media.metadata.title,
         albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
@@ -157,19 +159,19 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
 
   let positionInformation = {};
   if (progressData) {
- try {
-    console.log(`[buildAudiobookTrackList] There was progressData!`)
-    positionInformation = {
-      id: `${libraryItem.id}/file/${progressData.partName}`, // UUID-ITEM-ID/12345
-      index: 0,
-      // 1) Sonos gets upset if there are too many decimals
-      // 2) ABS returns everything in seconds, so multiple by 1000 for milliseconds for sonos
-      offsetMillis: Math.round(progressData.relativeTimeForPart * 1000),
-    };
-    console.log(`[buildAudiobookTrackList] positionInformation: ${JSON.stringify(positionInformation, null, 2)}`)
-  } catch (error) {
-	  console.error('ERROR IN buildAudiobookTrackList:', error.message)
-  }
+    logger.info(`Progress data found from ABS for ${libraryItem.id}`)
+    try {
+      positionInformation = {
+        id: `${libraryItem.id}/file/${progressData.partName}`, // UUID-ITEM-ID/12345
+        index: 0,
+        // 1) Sonos gets upset if there are too many decimals
+        // 2) ABS returns everything in seconds, so multiple by 1000 for milliseconds for sonos
+        offsetMillis: Math.round(progressData.relativeTimeForPart * 1000),
+      };
+      logger.debug("positionInformation for library item", positionInformation)
+    } catch (error) {
+      logger.derror("Error trying to get progressData", error.message)
+    }
   }
 
   return {
@@ -212,11 +214,11 @@ function partNameAndRelativeProgress(currentProgress, libraryItem) {
 
   let closestIndex = newDurationSums.indexOf(inThisPart);
 
-	console.log(`[partNameAndRelativeProgress] newDurationSums: ${newDurationSums}`)
-	console.log(`[partNameAndRelativeProgress] closestIndex: ${closestIndex}`)
-	console.log(`[partNameAndRelativeProgress] newDuration[closestIndex]: ${newDurationSums[closestIndex]}`)
-	console.log(`[partNameAndRelativeProgress] newDuration[closestIndex] - 1: ${newDurationSums[closestIndex] - 1}`)
-	console.log(`[partNameAndRelativeProgress] math calc: ${Math.abs(currentTime - newDurationSums[closestIndex - 1])}`)
+	logger.debug("newDurationSums", newDurationSums)
+	logger.debug("closestIndex", closestIndex)
+	logger.debug("newDuration[closestIndex]", newDurationSums[closestIndex])
+	logger.debug("Maths", Math.abs(currentTime - newDurationSums[closestIndex - 1]))
+
   res.partName = audioFiles[closestIndex].ino;
   res.relativeTimeForPart =
     durations[closestIndex] == 0
@@ -229,9 +231,10 @@ function partNameAndRelativeProgress(currentProgress, libraryItem) {
 async function buildProgress(libraryItem, updateObject) {
   //let partId = updateObject.libraryItemIdAndFileName.split("/")[1]; // li_{string}/Part##.mp3
   let partId = updateObject.libraryItemIdAndFileName.split("/")[2]; // ITEM-UUID/file/12345 -> 12345
-  console.log(`[buildProgress] partId: ${partId}`)
+  logger.debug("partId", partId)
+
   let audioFiles = libraryItem.media.audioFiles;
-  console.log(`[buildProgress] audioFiles: ${JSON.stringify(audioFiles, null, 2)}`)
+  logger.debug("audioFiles", audioFiles)
 
   let res = {
     progress: updateObject.positionMillis / 1000, // abs tracks progress in seconds
@@ -239,7 +242,7 @@ async function buildProgress(libraryItem, updateObject) {
       .map((audioFile) => audioFile.duration)
       .reduce((result, item) => result + item),
   };
-  console.log(`[buildProgress] res: ${JSON.stringify(res, null, 2)}`)
+  logger.debug("res", res)
 
   for (const audioFile of audioFiles) {
     let filename = audioFile.ino;
@@ -257,7 +260,7 @@ async function buildProgress(libraryItem, updateObject) {
 
 // Methods to invoke
 async function getMediaURI(id) {
-  console.log(`[getMediaURI] called with id: ${id}`)
+  logger.info("called with id", id)
   return await buildMediaURI(id);
 }
 
@@ -272,9 +275,9 @@ async function getMetadataResult(libraryItemId) {
     let absProgress = await getABSProgress(libraryItemId);
     let progressData;
     if (absProgress) {
-      console.log(`[getMetadataResult] absProgress found. absProgress: ${JSON.stringify(absProgress, null, 2)}`)
+      logger.info("absProgress found! absProgress", absProgress)
       progressData = partNameAndRelativeProgress(absProgress, libraryItem);
-      console.log(`[getMetadataResult] progressData from partNameAndRelativeProgress: ${JSON.stringify(progressData, null, 2)}`)
+      logger.debug("progressData from partNameAndRelativeProgress", progressData)
     }
 
     return await buildAudiobookTrackList(libraryItem, progressData);
@@ -285,7 +288,7 @@ async function updateAudioBookshelfProgress(updateObject) {
   // 1. grab the library item
   // 2. sum up all parts prior to current from updateObject (grabing durations from step 1)
   // 3. add updateObject.positionMillis to sum from step 2
-  console.log(`[updateAudioBookshelfProgress] Updating Audiobook progress...`)
+  logger.info("Updating audiobook progress...")
   let libraryItem = await getLibraryItem(updateObject.libraryItemId); // lets us get durations per part
   let progress = await buildProgress(libraryItem, updateObject);
   return await setProgress(updateObject, progress);

@@ -2,6 +2,7 @@ const soap = require("soap");
 const { updateAudioBookshelfProgress } = require("./utils");
 const express = require("express");
 const config = require("./config");
+const logger = require('./logger');
 
 /* CONFIG */
 const EXPRESS_APP = express();
@@ -14,17 +15,11 @@ const SONOS_WSDL_FILE = config.SONOS_WSDL_FILE;
 /**********/
 
 EXPRESS_APP.use(express.json()); // express.json allows for native body parsing
-/*
- * Uncomment to log all requests that hit the express server, regardless of endpoint
- *
-
 EXPRESS_APP.use((req, res, next) => {
-  //TODO: move to info logging level
-  console.log(`Received request: ${req.method} ${req.url}`);
+  logger.debug(`Received request: ${req.method} ${req.url}`);
   next();
 });
 
-*/
 
 EXPRESS_APP.listen(HTTP_PORT, function () {
   /* 
@@ -40,16 +35,14 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     SONOS_SOAP_SERVICE,
     SONOS_WSDL_FILE,
     function () {
-      //TODO: move to info logging level
-      console.log("[soapServer] server initialized");
+      logger.info('Server Initialized...');
     }
   );
 
-  soaper.log = function (type, data) {
-  //TODO: move to debug logging level
-  // uncomment to log SOAP requests coming in
-  // console.log(data)
-  };
+  // Even though this is set to DEBUG, it's still super noisy. Uncomment if needed, but most likely it won't be.
+  //soaper.log = function (type, data) {
+  //  logger.debug(data)
+  //};
 
   /*
     Sonos Cloud Queue Routes
@@ -60,8 +53,7 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     Reporting documentation: https://developer.sonos.com/build/content-service-add-features/add-reporting/
   */
   EXPRESS_APP.get("/manifest", (req, res) => {
-    //TODO: move to info logging level
-    console.log("[soapServer] /manifest called");
+    logger.info("/manifest endpoint hit")
     res.send({
       schemaVersion: "1.0",
       endpoints: [
@@ -74,17 +66,14 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
   });
 
   EXPRESS_APP.post(`${SOAP_ENDPOINT}/playback/v2.1/report`, (req, res) => {
-    //TODO: move to info logging level
-    console.log("[soapServer] /playback/v2.1/report called");
+    logger.info(`${SOAP_ENDPOINT}/playback/v2.1/report endpoint hit`)
   });
 
   EXPRESS_APP.post(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed`, (req, res) => {
-    //TODO: move to info logging level
-    console.log("[soapServer] /playback/v2.1/report/timePlayed called");
+    logger.info(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed endpoint hit`);
 
     let sonosProgressUpdate = req.body.items[0];
-    //TODO: add debug logging level
-    //console.log(`[soapServer] /report/timePlayed - sonosProgressUpdate: ${JSON.stringify(sonosProgressUpdate, null, 2)}`)
+    logger.debug(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed - sonosProgressUpdate`, sonosProgressUpdate)
     let progressUpdateForABS = {
       libraryItemId: sonosProgressUpdate.containerId,
       libraryItemIdAndFileName: sonosProgressUpdate.objectId,
