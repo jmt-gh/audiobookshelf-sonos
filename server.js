@@ -14,6 +14,18 @@ const SONOS_WSDL_FILE = config.SONOS_WSDL_FILE;
 /**********/
 
 EXPRESS_APP.use(express.json()); // express.json allows for native body parsing
+/*
+ * Uncomment to log all requests that hit the express server, regardless of endpoint
+ *
+
+EXPRESS_APP.use((req, res, next) => {
+  //TODO: move to info logging level
+  console.log(`Received request: ${req.method} ${req.url}`);
+  next();
+});
+
+*/
+
 EXPRESS_APP.listen(HTTP_PORT, function () {
   /* 
     SOAP server
@@ -28,13 +40,15 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     SONOS_SOAP_SERVICE,
     SONOS_WSDL_FILE,
     function () {
+      //TODO: move to info logging level
       console.log("[soapServer] server initialized");
     }
   );
 
   soaper.log = function (type, data) {
-    // uncomment to log SOAP requests coming in
-    // console.log(data)
+  //TODO: move to debug logging level
+  // uncomment to log SOAP requests coming in
+  // console.log(data)
   };
 
   /*
@@ -43,9 +57,10 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     of the SMAPI / SOAP implementation above.
 
     POST /timePlayed documentation: https://developer.sonos.com/reference/cloud-queue-api/post-timeplayed/
-    Reportig documentation: https://developer.sonos.com/build/content-service-add-features/add-reporting/
+    Reporting documentation: https://developer.sonos.com/build/content-service-add-features/add-reporting/
   */
   EXPRESS_APP.get("/manifest", (req, res) => {
+    //TODO: move to info logging level
     console.log("[soapServer] /manifest called");
     res.send({
       schemaVersion: "1.0",
@@ -58,15 +73,18 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
     });
   });
 
-  // TODO: Remove this probably? I think I saw it called once.. but it's never returned something, so it's probably safe to remove.
-  EXPRESS_APP.post("/playback/v2.1/report", (req, res) => {
+  EXPRESS_APP.post(`${SOAP_ENDPOINT}/playback/v2.1/report`, (req, res) => {
+    //TODO: move to info logging level
     console.log("[soapServer] /playback/v2.1/report called");
   });
 
-  EXPRESS_APP.post("/playback/v2.1/report/timePlayed", (req, res) => {
+  EXPRESS_APP.post(`${SOAP_ENDPOINT}/playback/v2.1/report/timePlayed`, (req, res) => {
+    //TODO: move to info logging level
     console.log("[soapServer] /playback/v2.1/report/timePlayed called");
 
     let sonosProgressUpdate = req.body.items[0];
+    //TODO: add debug logging level
+    //console.log(`[soapServer] /report/timePlayed - sonosProgressUpdate: ${JSON.stringify(sonosProgressUpdate, null, 2)}`)
     let progressUpdateForABS = {
       libraryItemId: sonosProgressUpdate.containerId,
       libraryItemIdAndFileName: sonosProgressUpdate.objectId,
