@@ -4,6 +4,7 @@ var sonosService = {
   Sonos: {
     SonosSoap: {
       getMetadata: function (args) {
+  //      console.log(`getMetadata sonosService called with args: ${JSON.stringify(args, null, 2)}`);
         let type = args["id"]; // "root" or abs library item id "li_laksjdfklasdj"
 
         switch (type) {
@@ -14,12 +15,11 @@ var sonosService = {
         }
       },
       getMediaMetadata: function (args) {
-        console.log("oh it got called?");
-        console.log(args);
+//        console.log(`getMediaMetadata sonosService called with args: ${JSON.stringify(args, null, 2)}`);
       },
       // get the actual URI of the audiobook / audiobook track we want to play
       getMediaURI: function (args) {
-        console.log("getMediaURI called");
+ //       console.log(`getMediaURI sonosService called with args: ${JSON.stringify(args, null, 2)}`);
         return getMediaURI(args["id"]);
       },
       getLastUpdate: function (args) {
