@@ -84,7 +84,7 @@ This is the actual express and soap server. 2 things happen in this file:
    - `ABS_URI`: This is your audiobookshelf URL
    - `ABS_LIBRARY_ID`: This is your audiobookshelf library ID. This should be in the form of a long string of letters and numbers. You can find this via the ABS API.
    - `ABS_TOKEN`: This is your ABS API key. This can be found in the user section of the ABS settings
-
+   - `LOG_LEVEL`: Set to debug, info, warn, error to set a minimum log level to show. **note:** debug is very noisy, and shouldn't be run all the time
 3. Update the `sonos.wsdl` file (line 2062) with your SOAP_URI
 
 ```
