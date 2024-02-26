@@ -80,7 +80,17 @@ EXPRESS_APP.listen(HTTP_PORT, function () {
       positionMillis: sonosProgressUpdate.positionMillis,
     };
 
-    updateAudioBookshelfProgress(progressUpdateForABS);
+    
+    // There's also 'final', which is sent whjen the track is changed.
+    // However, since you might have only paused on Sonos and continued
+    // your audiobook on another client, we don't want Sonos to override
+    // your status with a previous location when you finally change the
+    // track on your speaker.
+    //
+    // 'update' -> in progress playback updates
+    if (sonosProgressUpdate.type === 'update') {
+      updateAudioBookshelfProgress(progressUpdateForABS);
+    }
 
     /*
       1. Only send back a 200 if we are returning data
