@@ -90,30 +90,35 @@ async function buildMediaURI(id) {
   };
 }
 
-async function buildLibraryMetadataResult(res) {
+async function buildLibraryMetadataResult(res, index = 0, count = 50) {
   let libraryItems = res.results;
-  let count = res.total;
-  let total = count;
   let mediaMetadata = [];
 
-   for (const libraryItem of libraryItems) {
+  // Sort alphabetically by title for now
+  const sortedResults = libraryItems.sort((a, b) => a.media.metadata.title > b.media.metadata.title ? 1 : -1);
+
+  // Sonos seems to have a limit at 100 items, if you use 101, it won't work anymore
+  const pageContents = sortedResults.slice(index, index + count);
+
+  for (const libraryItem of pageContents) {
      // https://developer.sonos.com/build/content-service-add-features/save-resume-playback/
      var mediaMetadataEntry = { 
        itemType: "audiobook",
        id: libraryItem.id,
-      //mimeType: libraryItem.media.audioFiles[0].mimeType,
+       mimeType: libraryItem.media.audioFiles?.[0]?.mimeType ?? 'audio/mpeg', // audioFiles is only present if you request a single item
        canPlay: true,
        canResume: true,
-       title: libraryItem.media.metadata.title,
-       summary: libraryItem.media.metadata.description,
+       title: libraryItem.media.metadata.title ?? '',
+       summary: '', // libraryItem.media.metadata.description ?? 'foo',
        //authorId: libraryItem.media.metadata.authors[0].id,
-       //author: libraryItem.media.metadata.authors[0].name,
+       author: libraryItem.media.metadata.authorName,
        //narratorId: libraryItem.media.metadata.narrators[0].id,
-       //narrator: libraryItem.media.metadata.narrators[0].name,
-       //albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
+       narrator: libraryItem.media.metadata.narratorName,
+       albumArtURI: `${ABS_URI}/api/items/${libraryItem.id}/cover?token=${ABS_TOKEN}`,
      };  
 
-     logger.debug("libraryItem for mediaMetadataEntry:", libraryItem)
+    // logger.debug("libraryItem for mediaMetadataEntry:", libraryItem)
+    // logger.debug("mediaMetadataEntry:", mediaMetadataEntry)
 
      mediaMetadata.push(mediaMetadataEntry);
    }   
@@ -121,8 +126,8 @@ async function buildLibraryMetadataResult(res) {
   // count and total HAVE to be correct, otherwise the sonos app falls over silently
   return {
     getMetadataResult: {
-      count: count,
-      total: total,
+      count: mediaMetadata.length,
+      total: res.results.length,
       index: 0,
       mediaCollection: mediaMetadata,
     },
@@ -264,10 +269,10 @@ async function getMediaURI(id) {
   return await buildMediaURI(id);
 }
 
-async function getMetadataResult(libraryItemId) {
+async function getMetadataResult(libraryItemId, index, count) {
   if (libraryItemId == "root") {
-    let libraryItems = await getLibraryItems();
-    return await buildLibraryMetadataResult(libraryItems);
+    let libraryItems = await getLibraryItems(index);
+    return await buildLibraryMetadataResult(libraryItems, index, count);
   } else {
     let libraryItem = await getLibraryItem(libraryItemId);
 
