@@ -230,8 +230,13 @@ function partNameAndRelativeProgress(currentProgress, libraryItem) {
 	logger.debug("Maths", Math.abs(currentTime - newDurationSums[closestIndex - 1]))
 
   res.partName = audioFiles[closestIndex].ino;
+  // durations[closestIndex] can never be 0, since it stores the duration of each track. that would only work if you have
+  // an initial track that is 0 ms long
+  // -> if you are in the first part, simply return the running time
+  // -> if you are not in the first part, subtract the previous' parts total sums from currentTime to get the relative time
+  //    in the current track
   res.relativeTimeForPart =
-    durations[closestIndex] == 0
+    closestIndex == 0
       ? currentTime
       : Math.abs(currentTime - newDurationSums[closestIndex - 1]);
 
