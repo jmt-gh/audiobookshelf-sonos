@@ -16,7 +16,7 @@ var sonosService = {
             const res = await getMetadataResult(type, index, count);
             return res;
           default: // request after selecting a specific book
-            return getMetadataResult(type); // this needs to be the same method due to SOAP doing SOAP things for the XML with the function name
+            return getMetadataResult(type, index, count); // this needs to be the same method due to SOAP doing SOAP things for the XML with the function name
         }
       },
       getMediaMetadata: function (args) {

@@ -134,13 +134,15 @@ async function buildLibraryMetadataResult(res, index = 0, count = 50) {
   };
 }
 
-async function buildAudiobookTrackList(libraryItem, progressData) {
+async function buildAudiobookTrackList(libraryItem, index, count, progressData) {
   let tracks = libraryItem.media.audioFiles;
-  let icount = tracks.length;
-  let itotal = tracks.length;
   let imediaMetadata = [];
 
-  for (const track of tracks) {
+  // Sonos seems to have a limit at 100 items, if you use 101, it won't work anymore
+  const pageSize = count ?? 50;
+  const pageContents = tracks.slice(index, index + pageSize);
+
+  for (const track of pageContents) {
     var mediaMetadataEntry = {
       id: `${libraryItem.media.libraryItemId}/file/${track.ino}`,
       itemType: "track",
@@ -175,19 +177,22 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
       };
       logger.debug("positionInformation for library item", positionInformation)
     } catch (error) {
-      logger.derror("Error trying to get progressData", error.message)
+      logger.error("Error trying to get progressData", error.message)
     }
   }
 
-  return {
+  const res = {
     getMetadataResult: {
-      count: icount,
-      total: itotal,
-      index: 0,
+      count: imediaMetadata.length,
+      total: tracks.length,
+      // total: 210,
+      index: index,
       positionInformation: positionInformation,
       mediaMetadata: imediaMetadata,
     },
   };
+
+  return res;
 }
 
 function partNameAndRelativeProgress(currentProgress, libraryItem) {
@@ -285,7 +290,9 @@ async function getMetadataResult(libraryItemId, index, count) {
       logger.debug("progressData from partNameAndRelativeProgress", progressData)
     }
 
-    return await buildAudiobookTrackList(libraryItem, progressData);
+    const res = await buildAudiobookTrackList(libraryItem, index, count, progressData);
+    // logger.debug(JSON.stringify(res));
+    return res;
   }
 }
 
