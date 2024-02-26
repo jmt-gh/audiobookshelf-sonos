@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  audiobookshelf-sonos:
+    command: /usr/local/bin/npx nodemon --watch *.js server.js
+    environment:
+      - LOG_LEVEL=debug
+    volumes:
+    - ./:/app/

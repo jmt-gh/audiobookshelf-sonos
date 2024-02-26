@@ -4,15 +4,19 @@ const logger = require("./logger");
 var sonosService = {
   Sonos: {
     SonosSoap: {
-      getMetadata: function (args) {
+      getMetadata: async function (args) {
         logger.debug("getMetadata sonos-service called with args", args)
         let type = args["id"]; // "root" or abs library item id "li_laksjdfklasdj"
+        let index = args["index"]; // sonos page size is max 100 items, so it expectes them to be paginated. index is the start position
+        let count = args["count"];
+
 
         switch (type) {
           case "root": // first request after selecting "audiobookshelf" in the app. Returns the list of books in the library
-            return getMetadataResult(type);
+            const res = await getMetadataResult(type, index, count);
+            return res;
           default: // request after selecting a specific book
-            return getMetadataResult(type); // this needs to be the same method due to SOAP doing SOAP things for the XML with the function name
+            return getMetadataResult(type, index, count); // this needs to be the same method due to SOAP doing SOAP things for the XML with the function name
         }
       },
       getMediaMetadata: function (args) {

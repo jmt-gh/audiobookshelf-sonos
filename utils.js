@@ -90,30 +90,35 @@ async function buildMediaURI(id) {
   };
 }
 
-async function buildLibraryMetadataResult(res) {
+async function buildLibraryMetadataResult(res, index = 0, count = 50) {
   let libraryItems = res.results;
-  let count = res.total;
-  let total = count;
   let mediaMetadata = [];
 
-   for (const libraryItem of libraryItems) {
+  // Sort alphabetically by title for now
+  const sortedResults = libraryItems.sort((a, b) => a.media.metadata.title > b.media.metadata.title ? 1 : -1);
+
+  // Sonos seems to have a limit at 100 items, if you use 101, it won't work anymore
+  const pageContents = sortedResults.slice(index, index + count);
+
+  for (const libraryItem of pageContents) {
      // https://developer.sonos.com/build/content-service-add-features/save-resume-playback/
      var mediaMetadataEntry = { 
        itemType: "audiobook",
        id: libraryItem.id,
-      //mimeType: libraryItem.media.audioFiles[0].mimeType,
+       mimeType: libraryItem.media.audioFiles?.[0]?.mimeType ?? 'audio/mpeg', // audioFiles is only present if you request a single item
        canPlay: true,
        canResume: true,
-       title: libraryItem.media.metadata.title,
-       summary: libraryItem.media.metadata.description,
+       title: libraryItem.media.metadata.title ?? '',
+       summary: '', // libraryItem.media.metadata.description ?? 'foo',
        //authorId: libraryItem.media.metadata.authors[0].id,
-       //author: libraryItem.media.metadata.authors[0].name,
+       author: libraryItem.media.metadata.authorName,
        //narratorId: libraryItem.media.metadata.narrators[0].id,
-       //narrator: libraryItem.media.metadata.narrators[0].name,
-       //albumArtURI: `${ABS_URI}${libraryItem.media.coverPath}?token=${ABS_TOKEN}`,
+       narrator: libraryItem.media.metadata.narratorName,
+       albumArtURI: `${ABS_URI}/api/items/${libraryItem.id}/cover?token=${ABS_TOKEN}`,
      };  
 
-     logger.debug("libraryItem for mediaMetadataEntry:", libraryItem)
+    // logger.debug("libraryItem for mediaMetadataEntry:", libraryItem)
+    // logger.debug("mediaMetadataEntry:", mediaMetadataEntry)
 
      mediaMetadata.push(mediaMetadataEntry);
    }   
@@ -121,21 +126,23 @@ async function buildLibraryMetadataResult(res) {
   // count and total HAVE to be correct, otherwise the sonos app falls over silently
   return {
     getMetadataResult: {
-      count: count,
-      total: total,
+      count: mediaMetadata.length,
+      total: res.results.length,
       index: 0,
       mediaCollection: mediaMetadata,
     },
   };
 }
 
-async function buildAudiobookTrackList(libraryItem, progressData) {
+async function buildAudiobookTrackList(libraryItem, index, count, progressData) {
   let tracks = libraryItem.media.audioFiles;
-  let icount = tracks.length;
-  let itotal = tracks.length;
   let imediaMetadata = [];
 
-  for (const track of tracks) {
+  // Sonos seems to have a limit at 100 items, if you use 101, it won't work anymore
+  const pageSize = count ?? 50;
+  const pageContents = tracks.slice(index, index + pageSize);
+
+  for (const track of pageContents) {
     var mediaMetadataEntry = {
       id: `${libraryItem.media.libraryItemId}/file/${track.ino}`,
       itemType: "track",
@@ -170,19 +177,22 @@ async function buildAudiobookTrackList(libraryItem, progressData) {
       };
       logger.debug("positionInformation for library item", positionInformation)
     } catch (error) {
-      logger.derror("Error trying to get progressData", error.message)
+      logger.error("Error trying to get progressData", error.message)
     }
   }
 
-  return {
+  const res = {
     getMetadataResult: {
-      count: icount,
-      total: itotal,
-      index: 0,
+      count: imediaMetadata.length,
+      total: tracks.length,
+      // total: 210,
+      index: index,
       positionInformation: positionInformation,
       mediaMetadata: imediaMetadata,
     },
   };
+
+  return res;
 }
 
 function partNameAndRelativeProgress(currentProgress, libraryItem) {
@@ -220,8 +230,13 @@ function partNameAndRelativeProgress(currentProgress, libraryItem) {
 	logger.debug("Maths", Math.abs(currentTime - newDurationSums[closestIndex - 1]))
 
   res.partName = audioFiles[closestIndex].ino;
+  // durations[closestIndex] can never be 0, since it stores the duration of each track. that would only work if you have
+  // an initial track that is 0 ms long
+  // -> if you are in the first part, simply return the running time
+  // -> if you are not in the first part, subtract the previous' parts total sums from currentTime to get the relative time
+  //    in the current track
   res.relativeTimeForPart =
-    durations[closestIndex] == 0
+    closestIndex == 0
       ? currentTime
       : Math.abs(currentTime - newDurationSums[closestIndex - 1]);
 
@@ -264,10 +279,10 @@ async function getMediaURI(id) {
   return await buildMediaURI(id);
 }
 
-async function getMetadataResult(libraryItemId) {
+async function getMetadataResult(libraryItemId, index, count) {
   if (libraryItemId == "root") {
-    let libraryItems = await getLibraryItems();
-    return await buildLibraryMetadataResult(libraryItems);
+    let libraryItems = await getLibraryItems(index);
+    return await buildLibraryMetadataResult(libraryItems, index, count);
   } else {
     let libraryItem = await getLibraryItem(libraryItemId);
 
@@ -280,7 +295,9 @@ async function getMetadataResult(libraryItemId) {
       logger.debug("progressData from partNameAndRelativeProgress", progressData)
     }
 
-    return await buildAudiobookTrackList(libraryItem, progressData);
+    const res = await buildAudiobookTrackList(libraryItem, index, count, progressData);
+    // logger.debug(JSON.stringify(res));
+    return res;
   }
 }
 
